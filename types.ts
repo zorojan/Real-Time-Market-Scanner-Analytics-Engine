@@ -23,6 +23,13 @@ export interface FilterState {
   minVolume: number; // 0-100 (Minimum liquidity)
 }
 
+export interface AIInsight {
+  asset: string;
+  prediction: string;
+  confidence: 'High' | 'Medium' | 'Low';
+  action: 'Buy' | 'Sell' | 'Hold' | 'Watch';
+}
+
 export interface AppConfig {
   brandColor: string;
   visibleAssets: string[]; // List of symbol IDs

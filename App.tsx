@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Asset, FilterState, AppConfig, ViewType } from './types';
+import { Asset, FilterState, AppConfig, ViewType, AIInsight } from './types';
 import { INITIAL_ASSETS } from './constants';
 import Header from './components/Header';
 import FilterPanel from './components/FilterPanel';
@@ -26,6 +26,7 @@ const App: React.FC = () => {
   });
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [showMarketAnalysis, setShowMarketAnalysis] = useState(false);
+  const [aiInsights, setAiInsights] = useState<AIInsight[]>([]);
   const [config, setConfig] = useState<AppConfig>({
     brandColor: '#3b82f6', // Default Blue
     visibleAssets: [],
@@ -118,6 +119,7 @@ const App: React.FC = () => {
             filters={filters} 
             onAssetClick={setSelectedAsset} 
             brandColor={config.brandColor}
+            aiInsights={aiInsights}
           />
         ) : currentView === 'watchlist' ? (
           <Watchlist assets={assets} brandColor={config.brandColor} />
@@ -144,6 +146,7 @@ const App: React.FC = () => {
           assets={assets}
           onClose={() => setShowMarketAnalysis(false)}
           brandColor={config.brandColor}
+          onAnalysisComplete={(insights) => setAiInsights(insights)}
         />
       )}
 

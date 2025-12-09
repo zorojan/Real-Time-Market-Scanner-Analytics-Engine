@@ -1,6 +1,6 @@
 
-import { GoogleGenAI } from "@google/genai";
-import { Asset } from "../types";
+import { GoogleGenAI, Type } from "@google/genai";
+import { Asset, AIInsight } from "../types";
 
 // Helper to get the AI instance
 const getAIClient = () => {
@@ -16,7 +16,6 @@ export const getAssetSummary = async (asset: Asset): Promise<string> => {
   const ai = getAIClient();
   
   if (!ai) {
-    // Fallback if no API key is present for the demo
     return `${asset.name} is showing ${asset.verdict} signals. Momentum is at ${asset.momentum}%. Market volatility is ${asset.volatility}.`;
   }
 
@@ -28,7 +27,7 @@ export const getAssetSummary = async (asset: Asset): Promise<string> => {
     - Technical Verdict: ${asset.verdict}
     - Volatility: ${asset.volatility}
     
-    Provide a concise, one-sentence professional trading summary formatted for a financial dashboard. Focus on the actionability of the trade.
+    Provide a concise, one-sentence professional trading summary.
   `;
 
   try {
@@ -44,7 +43,12 @@ export const getAssetSummary = async (asset: Asset): Promise<string> => {
   }
 };
 
-export const getMarketOverview = async (assets: Asset[]): Promise<string> => {
+export interface MarketAnalysisResult {
+  summary: string;
+  insights: AIInsight[];
+}
+
+export const getMarketOverview = async (assets: Asset[]): Promise<MarketAnalysisResult> => {
   const ai = getAIClient();
   
   // Format data for the prompt
@@ -52,36 +56,67 @@ export const getMarketOverview = async (assets: Asset[]): Promise<string> => {
     `${a.symbol}: ${a.change24h}% (${a.verdict}, Vol: ${a.volatility})`
   ).join('\n');
 
-  const topGainer = [...assets].sort((a,b) => b.change24h - a.change24h)[0];
-  const btc = assets.find(a => a.symbol === 'BTC');
-
   if (!ai) {
-    return `Market Sentiment is mixed. ${topGainer?.symbol || 'Crypto'} is leading with strong gains, while major caps like BTC ${btc?.change24h && btc.change24h > 0 ? 'consolidate upwards' : 'face resistance'}. Traders should watch for volatility spikes in mid-cap assets.`;
+    return {
+      summary: "Demo Mode: API Key missing. Market shows mixed signals with volatility in high-cap assets.",
+      insights: [
+        { asset: "BTC", prediction: "Consolidation likely", confidence: "High", action: "Hold" },
+        { asset: "ETH", prediction: "Support test incoming", confidence: "Medium", action: "Watch" }
+      ]
+    };
   }
 
   const prompt = `
-    You are a professional financial analyst for a crypto terminal.
-    Analyze this snapshot of the current crypto market:
-    
+    Analyze this crypto market snapshot:
     ${marketData}
     
-    Provide a 3-paragraph executive summary:
-    1. Overall Market Sentiment (Bullish/Bearish/Neutral and why).
-    2. Key Outliers (Who is pumping/dumping and the technical context).
-    3. Forward-looking Strategy (What should a trader focus on right now? e.g., "Rotation into altcoins" or "Safety in BTC").
-    
-    Keep it professional, concise, and actionable. Do not use asterisks or markdown formatting like bolding.
+    Return a JSON object with:
+    1. "summary": A 3-paragraph executive summary (Sentiment, Outliers, Strategy).
+    2. "insights": An array of 3-5 specific trade signals. Each insight must have:
+       - "asset": Symbol (e.g. BTC)
+       - "prediction": Short concise prediction (e.g. "Breakout above 65k")
+       - "confidence": High, Medium, or Low
+       - "action": Buy, Sell, Hold, or Watch
   `;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            summary: { type: Type.STRING },
+            insights: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  asset: { type: Type.STRING },
+                  prediction: { type: Type.STRING },
+                  confidence: { type: Type.STRING },
+                  action: { type: Type.STRING }
+                }
+              }
+            }
+          }
+        }
+      }
     });
+
+    const jsonText = response.text;
+    if (!jsonText) throw new Error("Empty response");
     
-    return response.text || "Market analysis unavailable.";
+    const data = JSON.parse(jsonText) as MarketAnalysisResult;
+    return data;
+
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "AI Market Analysis temporarily unavailable due to connectivity issues.";
+    return {
+      summary: "AI Market Analysis temporarily unavailable due to connectivity or quota limits.",
+      insights: []
+    };
   }
 };

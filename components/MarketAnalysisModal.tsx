@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Asset } from '../types';
+import { Asset, AIInsight } from '../types';
 import { X, Bot, Sparkles, BarChart2 } from 'lucide-react';
 import { getMarketOverview } from '../services/geminiService';
 
@@ -8,21 +8,38 @@ interface MarketAnalysisModalProps {
   assets: Asset[];
   onClose: () => void;
   brandColor: string;
+  onAnalysisComplete: (insights: AIInsight[]) => void;
 }
 
-const MarketAnalysisModal: React.FC<MarketAnalysisModalProps> = ({ assets, onClose, brandColor }) => {
-  const [analysis, setAnalysis] = useState<string>('');
+const MarketAnalysisModal: React.FC<MarketAnalysisModalProps> = ({ assets, onClose, brandColor, onAnalysisComplete }) => {
+  const [analysisText, setAnalysisText] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     const fetchAnalysis = async () => {
       setIsLoading(true);
-      const text = await getMarketOverview(assets);
-      setAnalysis(text);
-      setIsLoading(false);
+      // We pass a snapshot of assets. Even if assets update in App, 
+      // we only analyze the snapshot from when the modal opened to save quota.
+      const result = await getMarketOverview(assets);
+      
+      if (mounted) {
+        setAnalysisText(result.summary);
+        if (result.insights && result.insights.length > 0) {
+          onAnalysisComplete(result.insights);
+        }
+        setIsLoading(false);
+      }
     };
+
     fetchAnalysis();
-  }, [assets]);
+
+    return () => { mounted = false; };
+    // CRITICAL FIX: Empty dependency array ensures this only runs ONCE when modal opens.
+    // Previously it was [assets], which changed every 2s, causing infinite API calls.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
@@ -59,7 +76,7 @@ const MarketAnalysisModal: React.FC<MarketAnalysisModalProps> = ({ assets, onClo
           ) : (
             <div className="space-y-6">
                <div className="prose prose-invert max-w-none">
-                 {analysis.split('\n').map((paragraph, idx) => (
+                 {analysisText.split('\n').map((paragraph, idx) => (
                    paragraph.trim() && (
                      <p key={idx} className="text-slate-300 leading-relaxed text-lg mb-4">
                        {paragraph}
@@ -85,6 +102,13 @@ const MarketAnalysisModal: React.FC<MarketAnalysisModalProps> = ({ assets, onClo
                        <span className="text-yellow-500 font-bold text-sm">65</span>
                     </div>
                   </div>
+               </div>
+               
+               <div className="mt-4 p-4 bg-blue-900/20 border border-blue-500/20 rounded-lg">
+                 <p className="text-blue-200 text-sm flex items-center gap-2">
+                   <Sparkles size={14} />
+                   Insights have been added to your dashboard feed below.
+                 </p>
                </div>
             </div>
           )}

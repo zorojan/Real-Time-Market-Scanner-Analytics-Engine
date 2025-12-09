@@ -1,18 +1,19 @@
 
 import React, { useMemo, useState } from 'react';
-import { Asset, FilterState } from '../types';
+import { Asset, FilterState, AIInsight } from '../types';
 import Sparkline from './Sparkline';
 import LiveScanner from './LiveScanner';
-import { ArrowUpRight, Zap, AlertCircle, BarChart3, LayoutGrid, List, Layers } from 'lucide-react';
+import { ArrowUpRight, Zap, AlertCircle, BarChart3, LayoutGrid, List, Layers, Bot, BrainCircuit } from 'lucide-react';
 
 interface DashboardProps {
   assets: Asset[];
   filters: FilterState;
   onAssetClick: (asset: Asset) => void;
   brandColor: string;
+  aiInsights?: AIInsight[];
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ assets, filters, onAssetClick, brandColor }) => {
+const Dashboard: React.FC<DashboardProps> = ({ assets, filters, onAssetClick, brandColor, aiInsights = [] }) => {
   const [viewMode, setViewMode] = useState<'list' | 'heatmap'>('list');
   
   // Filtering Logic
@@ -32,12 +33,9 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, filters, onAssetClick, br
       if (Math.abs(capScore - filters.marketCap) > 50) return false;
 
       // RSI / Momentum Slider (Broad matching range)
-      // If user sets RSI to 20 (Oversold), we want assets with low momentum.
-      // Tolerance of +/- 30 to keep results plentiful
       if (Math.abs(asset.momentum - filters.rsi) > 35) return false;
 
       // Min Volume Slider
-      // Map 0-100 slider to a volume threshold. 0 = $0, 100 = $10B
       const volumeThreshold = (filters.minVolume / 100) * 1000000000;
       if (asset.volume24h < volumeThreshold) return false;
 
@@ -161,7 +159,7 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, filters, onAssetClick, br
           </div>
         </div>
 
-        {/* View Switcher */}
+        {/* Assets View (List or Heatmap) */}
         {viewMode === 'list' ? (
           <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-xl animate-in fade-in zoom-in-95 duration-300">
             <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50 backdrop-blur">
@@ -232,7 +230,6 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, filters, onAssetClick, br
                           asset.verdict === 'Strong Sell' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
                           'bg-slate-500/10 text-slate-400 border-slate-500/20'
                         }`}>
-                          {/* Status Dot Animation */}
                           <span className={`w-1.5 h-1.5 rounded-full ${
                             asset.verdict.includes('Buy') ? 'bg-green-400 animate-[pulse_1.5s_infinite]' :
                             asset.verdict.includes('Sell') ? 'bg-red-400 animate-[pulse_1.5s_infinite]' :
@@ -254,23 +251,20 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, filters, onAssetClick, br
             </table>
           </div>
         ) : (
-          /* Heatmap Grid */
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 auto-rows-[120px] animate-in fade-in zoom-in-95 duration-300">
             {filteredAssets.map((asset) => {
-              // Determine size based on Market Cap
               const sizeClass = 
                 asset.marketCap === 'Large' ? 'col-span-2 row-span-2' : 
                 asset.marketCap === 'Mid' ? 'col-span-1 row-span-2' : 
                 'col-span-1 row-span-1';
 
-              // Determine color intensity based on change
               const isPositive = asset.change24h >= 0;
-              const absChange = Math.min(Math.abs(asset.change24h), 10); // cap opacity impact at 10%
-              const opacity = 0.1 + (absChange / 15); // Base 0.1, max around 0.8
+              const absChange = Math.min(Math.abs(asset.change24h), 10);
+              const opacity = 0.1 + (absChange / 15);
               
               const bgStyle = isPositive 
-                ? `rgba(34, 197, 94, ${opacity})` // Green
-                : `rgba(239, 68, 68, ${opacity})`; // Red
+                ? `rgba(34, 197, 94, ${opacity})` 
+                : `rgba(239, 68, 68, ${opacity})`;
 
               return (
                 <div 
@@ -279,7 +273,6 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, filters, onAssetClick, br
                   className={`${sizeClass} rounded-xl border border-slate-700/50 p-4 flex flex-col justify-between cursor-pointer transition-transform hover:scale-[0.98] hover:border-white/20 shadow-lg relative overflow-hidden group`}
                   style={{ backgroundColor: bgStyle }}
                 >
-                  {/* Background Pulse Animation for high volatility */}
                   {Math.abs(asset.change24h) > 5 && (
                       <div className="absolute inset-0 bg-white/5 animate-pulse pointer-events-none"></div>
                   )}
@@ -300,6 +293,45 @@ const Dashboard: React.FC<DashboardProps> = ({ assets, filters, onAssetClick, br
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* AI Intelligence Feed */}
+        {aiInsights.length > 0 && (
+          <div className="mt-8 animate-in slide-in-from-bottom fade-in duration-500">
+             <div className="flex items-center gap-3 mb-4">
+                <BrainCircuit className="text-purple-400" />
+                <h3 className="text-lg font-bold text-white">AI Intelligence Feed</h3>
+                <span className="text-xs text-slate-500 bg-slate-900 px-2 py-1 rounded">Generated by Gemini 2.5</span>
+             </div>
+             
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {aiInsights.map((insight, idx) => (
+                  <div key={idx} className="bg-slate-900/50 border border-slate-700/50 p-4 rounded-xl hover:border-purple-500/30 transition-colors">
+                     <div className="flex justify-between items-start mb-2">
+                        <span className="font-bold text-white">{insight.asset}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase border ${
+                          insight.action === 'Buy' ? 'text-green-400 border-green-500/30 bg-green-500/10' :
+                          insight.action === 'Sell' ? 'text-red-400 border-red-500/30 bg-red-500/10' :
+                          'text-slate-400 border-slate-500/30 bg-slate-500/10'
+                        }`}>
+                          {insight.action}
+                        </span>
+                     </div>
+                     <p className="text-sm text-slate-300 mb-3 line-clamp-2 min-h-[40px]">
+                        {insight.prediction}
+                     </p>
+                     <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          insight.confidence === 'High' ? 'bg-green-500' :
+                          insight.confidence === 'Medium' ? 'bg-yellow-500' :
+                          'bg-slate-500'
+                        }`}></div>
+                        <span className="text-xs text-slate-500">{insight.confidence} Confidence</span>
+                     </div>
+                  </div>
+                ))}
+             </div>
           </div>
         )}
       </div>
