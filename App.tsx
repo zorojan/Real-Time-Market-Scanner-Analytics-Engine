@@ -34,90 +34,73 @@ const App: React.FC = () => {
   const [showAdmin, setShowAdmin] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
 
-  // Simulation Effect: Real-time price updates
+  // Real-time data fetching
   useEffect(() => {
-    const interval = setInterval(() => {
-      setAssets(prev => prev.map(asset => {
-        // Calculate dynamic movement based on volatility
-        const volatilityFactor = asset.volatility === 'High' ? 0.015 : 0.005; // Increased volatility for demo
-        const randomMove = Math.random() * volatilityFactor * 2 - volatilityFactor;
-        const changeMult = 1 + randomMove;
-        
-        const newPrice = asset.price * changeMult;
-        
-        // Update 24h Change to be dynamic (drifts over time)
-        const newChange24h = parseFloat((asset.change24h + (randomMove * 100)).toFixed(2));
-        
-        // Update momentum based on the direction of the move
-        const momentumShift = randomMove > 0 ? 3 : -3;
-        const newMomentum = Math.min(100, Math.max(0, asset.momentum + momentumShift));
+    const fetchMarketData = async () => {
+      // Create a copy of assets to update
+      let currentAssets = [...assets];
 
-        // Dynamic Verdict calculation based on new Momentum
-        let newVerdict: Asset['verdict'] = 'Neutral';
-        if (newMomentum >= 80) newVerdict = 'Strong Buy';
-        else if (newMomentum >= 60) newVerdict = 'Buy';
-        else if (newMomentum <= 20) newVerdict = 'Strong Sell';
-        else if (newMomentum <= 40) newVerdict = 'Sell';
+      // Fetch data for each asset sequentially to respect rate limits
+      for (let i = 0; i < currentAssets.length; i++) {
+        const asset = currentAssets[i];
+        try {
+          // Import dynamically to avoid circular dependencies if any, though not needed here really
+          const { fetchAssetData } = await import('./services/taapi');
+          const updatedAsset = await fetchAssetData(asset.id, asset);
 
-        // Randomly toggle flags occasionally to rotate "Top Cards"
-        // 2% chance to toggle volume spike or oversold status per tick
-        const newVolumeSpike = Math.random() > 0.98 ? !asset.volumeSpike : asset.volumeSpike;
-        const newOversold = newMomentum < 25; // Oversold is strictly tied to low momentum
-        
-        // Jitter volume slightly
-        const volumeJitter = 1 + ((Math.random() - 0.5) * 0.05);
+          // Update state immediately for this asset to show progress
+          setAssets(prev => prev.map(a => a.id === asset.id ? updatedAsset : a));
 
-        return {
-          ...asset,
-          price: newPrice,
-          change24h: newChange24h,
-          momentum: newMomentum,
-          verdict: newVerdict,
-          volumeSpike: newVolumeSpike,
-          oversold: newOversold,
-          volume24h: asset.volume24h * volumeJitter,
-          // Update trend array for sparkline (remove first, add new price)
-          trend: [...asset.trend.slice(1), newPrice]
-        };
-      }));
-    }, 2000); // Update every 2 seconds for faster demo feel
+          // Wait 2 seconds between requests (Free tier limit is often 1 request / 15s, but let's try 2s for now or assume user has better key)
+          // If free tier (1 req/15s), this loop will be slow. 
+          // We'll use 1.5s delay as a baseline for "Basic" tier or "Free" with burst.
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        } catch (error) {
+          console.error(`Error updating ${asset.id}`, error);
+        }
+      }
+    };
 
+    fetchMarketData();
+
+    // Optional: Poll every 5 minutes
+    const interval = setInterval(fetchMarketData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-200">
-      
+
       {/* Global Navigation Rail */}
-      <GlobalNav 
-        currentView={currentView} 
-        onViewChange={setCurrentView} 
-        brandColor={config.brandColor} 
+      <GlobalNav
+        currentView={currentView}
+        onViewChange={setCurrentView}
+        brandColor={config.brandColor}
       />
 
       {/* Context Sidebar (Only visible on Dashboard) */}
       {currentView === 'dashboard' && (
-        <FilterPanel 
-          filters={filters} 
-          setFilters={setFilters} 
-          brandColor={config.brandColor} 
+        <FilterPanel
+          filters={filters}
+          setFilters={setFilters}
+          brandColor={config.brandColor}
         />
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Ticker & Header */}
-        <Header 
-          assets={assets} 
-          onOpenAdmin={() => setShowAdmin(true)} 
+        <Header
+          assets={assets}
+          onOpenAdmin={() => setShowAdmin(true)}
           onOpenAnalysis={() => setShowMarketAnalysis(true)}
         />
 
         {/* Main Content Area */}
         {currentView === 'dashboard' ? (
-          <Dashboard 
-            assets={assets} 
-            filters={filters} 
-            onAssetClick={setSelectedAsset} 
+          <Dashboard
+            assets={assets}
+            filters={filters}
+            onAssetClick={setSelectedAsset}
             brandColor={config.brandColor}
             aiInsights={aiInsights}
           />
@@ -134,15 +117,15 @@ const App: React.FC = () => {
 
       {/* Modals */}
       {selectedAsset && (
-        <AssetModal 
-          asset={selectedAsset} 
-          onClose={() => setSelectedAsset(null)} 
+        <AssetModal
+          asset={selectedAsset}
+          onClose={() => setSelectedAsset(null)}
           brandColor={config.brandColor}
         />
       )}
 
       {showMarketAnalysis && (
-        <MarketAnalysisModal 
+        <MarketAnalysisModal
           assets={assets}
           onClose={() => setShowMarketAnalysis(false)}
           brandColor={config.brandColor}
@@ -151,10 +134,10 @@ const App: React.FC = () => {
       )}
 
       {showAdmin && (
-        <AdminPanel 
-          config={config} 
-          setConfig={setConfig} 
-          onClose={() => setShowAdmin(false)} 
+        <AdminPanel
+          config={config}
+          setConfig={setConfig}
+          onClose={() => setShowAdmin(false)}
         />
       )}
 
