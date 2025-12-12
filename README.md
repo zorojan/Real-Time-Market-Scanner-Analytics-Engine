@@ -10,6 +10,21 @@
 
 # Real-Time Market Scanner & Analytics Engine
 
+## About MarketPulse
+
+MarketPulse is an AI-Powered Real-Time Market Scanner & Analytics Engine designed to demonstrate how to build professional trading tools without complex backend engineering. By leveraging **Taapi.io**, it focuses on UI and logic rather than data normalization.
+
+### Key Features
+
+*   **Live Scanner:** Instead of static charts, the dashboard processes live updates on key market indicators.
+*   **Smart Scoring:** Automatically calculates a "Verdict" (e.g., "Strong Buy") using indicators like RSI and MACD.
+*   **AI-Driven Intelligence:** Aggregates real-time news and uses Generative AI to explain market movements and calculate Sentiment Scores.
+*   **Whale Activity Tracker:** Monitors volume spikes and large wallet movements to detect accumulation or sell pressure.
+
+### How It Works
+
+The engine is powered by the **Taapi.io API**, providing instant access to over 200+ technical indicators (RSI, MACD, Bollinger Bands, etc.) and real-time data across 500+ exchanges. This allows the scanner to pull accurate, up-to-date information without the need for maintaining complex calculation servers.
+
 ## Run Locally
 
 **Prerequisites:**  Node.js
@@ -40,7 +55,7 @@
 ---
 
 ### For Developers
-Want to build this yourself? We have released the core logic as an open-source blueprint. [Link to GitHub Repository]
+Want to build this yourself? We have released the core logic as an open-source blueprint. [Read the full article here](https://taapi.io/news/building-aI-real-time-market-scanner)
 
 ### For Enterprise
 Need a turnkey version of this scanner for your exchange or fund? This solution was architected by **SDH.global**, a certified Taapi.io integration partner. [Contact SDH.global for Custom Development](https://sdh.global/)
