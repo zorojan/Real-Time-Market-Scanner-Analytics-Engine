@@ -1,12 +1,14 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+  <a href="https://taapi.io/">
+    <img src="https://taapi.io/wp-content/themes/taapi/images/logo-taapi.svg" alt="Taapi.io Logo" height="50" />
+  </a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://sdh.global/">
+    <img src="https://sdh.global/s/1-57-1/img/logo.svg" alt="SDH.global Logo" height="50" />
+  </a>
 </div>
 
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/drive/1qUjv0TkbxnwiiVskEMs-a6JbhlkSTbc7
+# Real-Time Market Scanner & Analytics Engine
 
 ## Run Locally
 
@@ -34,3 +36,11 @@ View your app in AI Studio: https://ai.studio/apps/drive/1qUjv0TkbxnwiiVskEMs-a6
     ```bash
     npm run build
     ```
+
+---
+
+### For Developers
+Want to build this yourself? We have released the core logic as an open-source blueprint. [Link to GitHub Repository]
+
+### For Enterprise
+Need a turnkey version of this scanner for your exchange or fund? This solution was architected by **SDH.global**, a certified Taapi.io integration partner. [Contact SDH.global for Custom Development](https://sdh.global/)
