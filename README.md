@@ -60,4 +60,4 @@ The engine is powered by the **Taapi.io API**, providing instant access to over 
 Want to build this yourself? We have released the core logic as an open-source blueprint. [Read the full article here](https://taapi.io/news/building-aI-real-time-market-scanner)
 
 ### For Enterprise
-Need a turnkey version of this scanner for your exchange or fund? This solution was architected by **SDH.global**, a certified Taapi.io integration partner. [Contact SDH.global for Custom Development](https://sdh.global/)
+Need a turnkey version of this scanner for your exchange or fund? This solution was architected by **SDH.global**, a certified Taapi.io integration partner. [Contact SDH.global for Custom AI Software Development](https://sdh.global/services/ai-software-development/)
