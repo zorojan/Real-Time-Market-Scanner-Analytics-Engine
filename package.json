@@ -2,6 +2,20 @@
   "name": "marketpulse-ai",
   "private": true,
   "version": "0.0.0",
+  "description": "AI-Powered Real-Time Market Scanner & Analytics Engine using Taapi.io",
+  "keywords": [
+    "cryptocurrency",
+    "trading-bot",
+    "market-scanner",
+    "technical-analysis",
+    "taapi",
+    "real-time-data",
+    "react",
+    "typescript",
+    "fintech",
+    "ai-trading",
+    "crypto-analytics"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
