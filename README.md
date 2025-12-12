@@ -14,6 +14,8 @@
 
 MarketPulse is an AI-Powered Real-Time Market Scanner & Analytics Engine designed to demonstrate how to build professional trading tools without complex backend engineering. By leveraging **Taapi.io**, it focuses on UI and logic rather than data normalization.
 
+![MarketPulse Screenshot](screenshot-building-aI-real-time-market-scanner.png)
+
 ### Key Features
 
 *   **Live Scanner:** Instead of static charts, the dashboard processes live updates on key market indicators.
