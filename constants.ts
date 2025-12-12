@@ -16,6 +16,7 @@ export const INITIAL_ASSETS: Asset[] = [
     volumeSpike: false,
     oversold: false,
     volume24h: 45000000000,
+    supply: 19700000, // ~19.7M BTC
   },
   {
     id: 'ethereum',
@@ -31,6 +32,7 @@ export const INITIAL_ASSETS: Asset[] = [
     volumeSpike: false,
     oversold: false,
     volume24h: 18000000000,
+    supply: 120000000, // ~120M ETH
   },
   {
     id: 'solana',
@@ -46,6 +48,7 @@ export const INITIAL_ASSETS: Asset[] = [
     volumeSpike: true, // Top Gainer candidate
     oversold: false,
     volume24h: 4200000000,
+    supply: 460000000, // ~460M SOL
   },
   {
     id: 'ripple',
@@ -61,6 +64,7 @@ export const INITIAL_ASSETS: Asset[] = [
     volumeSpike: false,
     oversold: false,
     volume24h: 1200000000,
+    supply: 55000000000, // ~55B XRP
   },
   {
     id: 'cardano',
@@ -76,6 +80,7 @@ export const INITIAL_ASSETS: Asset[] = [
     volumeSpike: false,
     oversold: true, // Oversold candidate
     volume24h: 450000000,
+    supply: 35000000000, // ~35B ADA
   },
   {
     id: 'pepe',
@@ -91,6 +96,7 @@ export const INITIAL_ASSETS: Asset[] = [
     volumeSpike: true,
     oversold: false,
     volume24h: 850000000,
+    supply: 420000000000000, // ~420T PEPE
   },
   {
     id: 'avalanche',
@@ -106,6 +112,7 @@ export const INITIAL_ASSETS: Asset[] = [
     volumeSpike: false,
     oversold: false,
     volume24h: 650000000,
+    supply: 390000000, // ~390M AVAX
   }
 ];
 

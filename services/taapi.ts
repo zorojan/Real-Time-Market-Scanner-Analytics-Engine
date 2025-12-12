@@ -41,7 +41,7 @@ function calculateRSI(closes: number[], period: number = 14): number {
   const avgLoss = losses / period;
 
   if (avgLoss === 0) return 100;
-  
+
   const rs = avgGain / avgLoss;
   return 100 - (100 / (1 + rs));
 }
@@ -69,23 +69,23 @@ export const fetchAssetData = async (assetId: string, currentAsset: Asset): Prom
     }
 
     const candles: Candle[] = await response.json();
-    
+
     if (!candles || candles.length === 0) return currentAsset;
 
     // Sort candles by timestamp just in case, though usually they are sorted
     // Taapi returns newest first? Or oldest first? 
     // Documentation says: "Returns an array of candles... The first element is the oldest candle."
     // Let's verify if we can. Assuming oldest first for standard OHLCV.
-    
+
     // Latest candle is the last one
     const latestCandle = candles[candles.length - 1];
     const firstCandle = candles[0];
-    
+
     const currentPrice = latestCandle.close;
     const openPrice24h = firstCandle.open; // Or close of 24h ago? Let's use open of the oldest candle in the 24h set.
-    
+
     const change24h = ((currentPrice - openPrice24h) / openPrice24h) * 100;
-    
+
     const trend = candles.map(c => c.close);
     const volume24h = candles.reduce((acc, c) => acc + (c.volume * c.close), 0); // Approximate USD volume
 
@@ -107,6 +107,23 @@ export const fetchAssetData = async (assetId: string, currentAsset: Asset): Prom
     if (volatilityRange > 0.05) volatility = 'High';
     if (volatilityRange < 0.02) volatility = 'Low';
 
+    // Dynamic Market Cap Calculation
+    let marketCap: Asset['marketCap'] = currentAsset.marketCap; // Fallback
+    if (currentAsset.supply) {
+      const mcapValue = currentPrice * currentAsset.supply;
+      if (mcapValue >= 10_000_000_000) marketCap = 'Large';      // > $10B
+      else if (mcapValue >= 1_000_000_000) marketCap = 'Mid';    // > $1B
+      else marketCap = 'Small';                                  // < $1B
+    }
+
+    // Improved Volume Spike Detection
+    // Calculate Average Volume of the last 24h
+    const averageVolume = candles.reduce((acc, c) => acc + c.volume, 0) / candles.length;
+    // Check if the latest candle's volume is significantly higher than the average
+    // We use the latest closed candle for this check
+    const latestVolume = latestCandle.volume;
+    const volumeSpike = latestVolume > (averageVolume * 1.5);
+
     return {
       ...currentAsset,
       price: currentPrice,
@@ -116,9 +133,8 @@ export const fetchAssetData = async (assetId: string, currentAsset: Asset): Prom
       verdict,
       volatility,
       volume24h,
-      // Keep static metadata
-      marketCap: currentAsset.marketCap, 
-      volumeSpike: volume24h > currentAsset.volume24h * 1.5, // Simple spike detection vs previous (mock)
+      marketCap,
+      volumeSpike,
       oversold: rsi < 30,
     };
 

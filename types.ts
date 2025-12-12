@@ -13,6 +13,7 @@ export interface Asset {
   volumeSpike?: boolean;
   oversold?: boolean;
   volume24h: number; // USD value
+  supply?: number; // Circulating Supply
 }
 
 export interface FilterState {
